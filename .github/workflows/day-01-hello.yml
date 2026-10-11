@@ -1,0 +1,52 @@
+name: Day 01 — Hello GitHub Actions
+
+# 1. EVENT: when does this run?
+on:
+  push:
+    branches: [main, "day-*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:   # manual trigger from the UI — used heavily later
+
+# 2. JOBS: what work to do
+jobs:
+  # Job 1 — demonstrate the basics
+  hello:
+    name: Say hello
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print a greeting
+        run: echo "Hello from a GitHub-hosted runner!"
+
+      - name: Show runner context (who/where am I?)
+        run: |
+          echo "OS:        ${{ runner.os }}"
+          echo "Arch:      ${{ runner.arch }}"
+          echo "Runner:    ${{ runner.name }}"
+          echo "Repo:      ${{ github.repository }}"
+          echo "Ref:       ${{ github.ref }}"
+          echo "SHA:       ${{ github.sha }}"
+          echo "Actor:     ${{ github.actor }}"
+          echo "Event:     ${{ github.event_name }}"
+
+      - name: Show the workspace (this is what checkout gives you)
+        run: |
+          echo "Workspace: $GITHUB_WORKSPACE"
+          ls -la
+
+  # Job 2 — runs in PARALLEL with `hello` by default
+  environment-probe:
+    name: Probe the runner environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: OS details
+        run: |
+          uname -a
+          cat /etc/os-release | head -5
+
+      - name: Preinstalled tooling
+        run: |
+          for t in git docker node python3 kubectl helm jq; do
+            printf "%-10s " "$t"
+            command -v "$t" >/dev/null && "$t" --version 2>/dev/null | head -1 || echo "(not installed)"
+          done
